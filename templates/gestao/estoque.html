@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Estoque | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading"><div><span class="eyebrow">Insumos</span><h1>Estoque</h1></div></div>
+  <div class="two-columns">
+    <section class="panel"><h2>Registrar compra</h2><form method="post" class="stack-form">{% csrf_token %}<input type="hidden" name="action" value="entry">{{ entry_form.as_p }}<button class="button primary" type="submit">Adicionar ao estoque</button></form></section>
+    <section class="panel"><h2>Novo ingrediente</h2><form method="post" class="stack-form">{% csrf_token %}<input type="hidden" name="action" value="ingredient">{{ ingredient_form.as_p }}<button class="button" type="submit">Cadastrar ingrediente</button></form></section>
+  </div>
+  <section class="panel spaced-panel"><div class="panel-heading"><h2>Posição atual</h2><span>{{ ingredients|length }} insumos</span></div>
+    <div class="responsive-table"><table><thead><tr><th>Ingrediente</th><th>Estoque</th><th>Mínimo</th><th>Embalagem</th><th>Custo unitário</th><th>Situação</th></tr></thead><tbody>
+      {% for ingredient in ingredients %}<tr><td><strong>{{ ingredient.name }}</strong></td><td>{{ ingredient.current_stock|floatformat:3 }} {{ ingredient.unit }}</td><td>{{ ingredient.minimum_stock|floatformat:3 }} {{ ingredient.unit }}</td><td>{{ ingredient.package_quantity|floatformat:2 }} {{ ingredient.unit }} · R$ {{ ingredient.package_price|floatformat:2 }}</td><td>R$ {{ ingredient.unit_cost|floatformat:4 }}</td><td>{% if ingredient.is_low_stock %}<span class="status danger">Baixo</span>{% else %}<span class="status good">Ok</span>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">Cadastre seu primeiro ingrediente.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Produção | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading"><div><span class="eyebrow">Cozinha</span><h1>Produção</h1></div></div>
+  <div class="two-columns production-layout">
+    <section class="panel"><h2>Registrar receita feita</h2><p>Ao concluir, os ingredientes serão descontados do estoque automaticamente.</p><form method="post" class="stack-form">{% csrf_token %}{{ form.as_p }}<button class="button primary" type="submit">Concluir produção</button></form></section>
+    <section class="panel"><h2>Últimas produções</h2><div class="timeline">{% for batch in batches %}<div><span></span><p><strong>{{ batch.recipe.name }}</strong><small>{{ batch.units_produced }} unidades · {{ batch.produced_at|date:'d/m/Y H:i' }}</small></p></div>{% empty %}<p>Nenhuma produção registrada.</p>{% endfor %}</div></section>
+  </div>
+</main>
+{% endblock %}

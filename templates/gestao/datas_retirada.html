@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Datas de retirada | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading">
+    <div><span class="eyebrow">Agenda da loja</span><h1>Datas disponíveis para retirada</h1><p>Somente as datas cadastradas aqui aparecerão para o cliente finalizar o pedido.</p></div>
+  </div>
+  <div class="two-columns date-management-grid">
+    <section class="panel">
+      <h2>Liberar nova data</h2>
+      <p>Escolha um dia de hoje em diante.</p>
+      <form method="post" class="stack-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <label>Data disponível{{ form.pickup_date }}{{ form.pickup_date.errors }}</label>
+        <button class="button primary" type="submit">📅 Liberar data</button>
+      </form>
+    </section>
+    <section class="panel">
+      <div class="panel-heading"><h2>Próximas datas liberadas</h2><span>{{ available_dates|length }} disponível(is)</span></div>
+      <div class="date-list">
+        {% for item in available_dates %}
+          <div class="date-row">
+            <div><strong>{{ item.pickup_date|date:'l, d/m/Y' }}</strong><small>Visível para o cliente no fechamento do pedido</small></div>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="date_id" value="{{ item.pk }}">
+              <button class="date-delete" type="submit" aria-label="Remover {{ item.pickup_date|date:'d/m/Y' }}">Remover</button>
+            </form>
+          </div>
+        {% empty %}
+          <div class="empty-state"><span>📅</span><h3>Nenhuma data liberada</h3><p>Cadastre uma data para começar a receber novos pedidos.</p></div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</main>
+{% endblock %}

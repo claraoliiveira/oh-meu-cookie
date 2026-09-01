@@ -1,0 +1,55 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Oh! Meu Cookie — cookies artesanais e gestão da confeitaria.">
+  <title>{% block title %}Oh! Meu Cookie{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{% if '/gestao/' in request.path %}{% url 'gestao_dashboard' %}{% else %}{% url 'catalogo' %}{% endif %}" aria-label="Página inicial">
+      <span class="brand-logo"><img src="{% static 'img/logo-oh-meu-cookie.png' %}" alt="Logo Oh! Meu Cookie"></span>
+      <span><strong>Oh! Meu Cookie</strong><small>{% if '/gestao/' in request.path %}painel de gestão{% else %}pedidos irresistíveis{% endif %}</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Navegação principal">
+      {% if '/gestao/' in request.path %}
+        <a class="button management-store-link" href="{% url 'catalogo' %}" target="_blank" rel="noopener">🛍️ Loja de pedidos</a>
+        <span class="user-chip">🔒 {{ user.username }}</span>
+        <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="link-button">Sair</button></form>
+      {% else %}
+        <span class="pickup-note">Retirada · Pix ou cartão</span>
+        <a class="button management-login-link" href="{% url 'login' %}?next={% url 'gestao_dashboard' %}">🔐 Entrar na gestão</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% if user.is_authenticated and '/gestao/' in request.path %}
+    <nav class="management-nav" aria-label="Seções da gestão">
+      <a href="{% url 'gestao_dashboard' %}">Visão geral</a>
+      <a href="{% url 'gestao_pedidos' %}">Pedidos</a>
+      <a href="{% url 'gestao_estoque' %}">Estoque</a>
+      <a href="{% url 'gestao_receitas' %}">Receitas</a>
+      <a href="{% url 'gestao_producao' %}">Produção</a>
+      <a href="{% url 'gestao_datas_retirada' %}">Datas de retirada</a>
+      <a href="{% url 'gestao_financeiro' %}">Financeiro</a>
+    </nav>
+  {% endif %}
+
+  {% if messages %}
+    <div class="toast-stack" aria-live="polite">
+      {% for message in messages %}<div class="toast">{{ message }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+  <footer class="footer">
+    <p><strong>Oh! Meu Cookie</strong> — desejo em cada mordida.</p>
+    <p>Retirada no local · Pagamento por Pix ou cartão.</p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

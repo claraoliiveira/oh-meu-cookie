@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Receitas | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading"><div><span class="eyebrow">Custos e precificação</span><h1>Receitas</h1></div><a class="button" href="{% url 'admin:negocio_recipe_add' %}">Nova receita</a></div>
+  <div class="recipe-grid">
+    {% for recipe in recipes %}
+      <article class="panel recipe-card"><div class="panel-heading"><div><span class="eyebrow">Rende {{ recipe.yield_quantity }} unidades</span><h2>{{ recipe.name }}</h2></div><a href="{% url 'admin:negocio_recipe_change' recipe.pk %}">Editar</a></div>
+        <div class="mini-kpis"><div><span>Custo total</span><strong>R$ {{ recipe.total_cost|floatformat:2 }}</strong></div><div><span>Custo/unidade</span><strong>R$ {{ recipe.unit_cost|floatformat:2 }}</strong></div></div>
+        <details><summary>Ver ingredientes</summary><ul>{% for item in recipe.items.all %}<li><span>{{ item.ingredient.name }}</span><strong>{{ item.quantity|floatformat:3 }} {{ item.ingredient.unit }}</strong></li>{% endfor %}</ul></details>
+        {% for product in recipe.products.all %}<div class="price-line"><span>Venda: {{ product.name }}</span><strong>R$ {{ product.sale_price|floatformat:2 }}</strong><small>Lucro/un.: R$ {{ product.unit_profit|floatformat:2 }} · {{ product.markup_percent|floatformat:0 }}%</small></div>{% empty %}<p class="muted">Esta receita ainda não está ligada a um produto.</p>{% endfor %}
+      </article>
+    {% empty %}<div class="empty-state"><h3>Nenhuma receita cadastrada.</h3></div>{% endfor %}
+  </div>
+</main>
+{% endblock %}

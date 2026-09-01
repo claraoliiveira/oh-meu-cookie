@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Pedido recebido | Oh! Meu Cookie{% endblock %}
+{% block content %}
+<main class="center-page">
+  <section class="success-card">
+    <div class="success-icon">✓</div>
+    <span class="eyebrow">Pedido #{{ order.pk }}</span>
+    <h1>Pedido recebido, {{ order.customer.name }}!</h1>
+    <p>Agora falta só confirmar os detalhes pelo WhatsApp.</p>
+    <div class="order-summary">
+      {% for item in order.items.all %}
+        <div><span>{{ item.quantity }}x {{ item.product.name }}</span><strong>R$ {{ item.subtotal|floatformat:2 }}</strong></div>
+      {% endfor %}
+      <div class="summary-total"><span>Total</span><strong>R$ {{ order.total|floatformat:2 }}</strong></div>
+    </div>
+    <a class="button whatsapp" href="{{ whatsapp_url }}" target="_blank" rel="noopener">Confirmar pelo WhatsApp</a>
+    <a class="text-link" href="{% url 'catalogo' %}">Voltar ao cardápio</a>
+  </section>
+</main>
+{% endblock %}

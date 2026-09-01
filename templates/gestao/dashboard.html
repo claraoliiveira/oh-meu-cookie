@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Visão geral | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading">
+    <div><span class="eyebrow">Hoje na confeitaria</span><h1>Visão geral</h1></div>
+    <div class="page-actions">
+      <a class="button" href="{% url 'catalogo' %}" target="_blank" rel="noopener">🛍️ Abrir loja de pedidos</a>
+      <a class="button primary" href="{% url 'gestao_pedidos' %}">Ver pedidos</a>
+    </div>
+  </div>
+  <section class="kpi-grid">
+    <article class="kpi pink"><span>Novos pedidos</span><strong>{{ new_orders }}</strong><small>aguardando confirmação</small></article>
+    <article class="kpi amber"><span>Estoque baixo</span><strong>{{ low_stock }}</strong><small>insumos pedindo atenção</small></article>
+    <article class="kpi lilac"><span>A receber</span><strong>R$ {{ pending_receivables|floatformat:2 }}</strong><small>valores pendentes</small></article>
+    <article class="kpi green"><span>Saldo do mês</span><strong>R$ {{ balance|floatformat:2 }}</strong><small>R$ {{ income|floatformat:2 }} entrou</small></article>
+  </section>
+  <div class="dashboard-grid">
+    <section class="panel">
+      <div class="panel-heading"><h2>Pedidos recentes</h2><a href="{% url 'gestao_pedidos' %}">Ver todos</a></div>
+      <div class="responsive-table"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Status</th><th>Total</th></tr></thead><tbody>
+        {% for order in recent_orders %}<tr><td>#{{ order.pk }}</td><td>{{ order.customer.name }}</td><td><span class="status">{{ order.get_status_display }}</span></td><td>R$ {{ order.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="4">Nenhum pedido ainda.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    <aside class="panel birthday-panel"><span class="big-emoji">🎂</span><h2>Aniversariantes de hoje</h2>
+      {% for customer in birthday_customers %}<p><strong>{{ customer.name }}</strong><br>{{ customer.phone }}</p>{% empty %}<p>Nenhum aniversário cadastrado para hoje.</p>{% endfor %}
+    </aside>
+  </div>
+</main>
+{% endblock %}

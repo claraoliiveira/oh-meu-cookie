@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Peça seus cookies | Oh! Meu Cookie{% endblock %}
+{% block content %}
+<main>
+  <section class="hero">
+    <img src="{% static 'img/cookie-hero-product-visual.png' %}" alt="Cookies artesanais com chocolate derretido">
+    <div class="hero-copy">
+      <span class="eyebrow hero-eyebrow">Crocante por fora · irresistível por dentro</span>
+      <h1>Desejo em forma de <em>cookie.</em></h1>
+      <p>Grandes, recheados e feitos para transformar qualquer pausa no melhor momento do dia.</p>
+      <div class="hero-actions"><a class="button primary" href="#cardapio">Quero o meu crush 🍪</a><span>Retirada · Pix · Cartão</span></div>
+    </div>
+  </section>
+
+  <section id="cardapio" class="section-shell">
+    <div class="section-heading">
+      <div><span class="eyebrow">Cardápio da tentação</span><h2>Escolha sem moderação</h2><p>Seu único problema vai ser decidir qual provar primeiro.</p></div>
+      <button type="button" class="button cart-button" data-open-cart>Minha sacola <span data-cart-count>0</span></button>
+    </div>
+
+    {% if products %}
+      <div class="product-grid">
+        {% for product in products %}
+          <article class="product-card" data-product data-id="{{ product.pk }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}">
+            <div class="cookie-spot" aria-hidden="true"><span>🍪</span></div>
+            {% if product.featured %}<span class="pill">Mais desejado</span>{% endif %}
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description|default:'Cookie artesanal preparado com ingredientes selecionados.' }}</p>
+            <div class="product-meta">
+              {% if product.weight_grams %}<span>{{ product.weight_grams }}g</span>{% endif %}
+              <strong>R$ {{ product.sale_price|floatformat:2 }}</strong>
+            </div>
+            <div class="quantity-control" aria-label="Quantidade de {{ product.name }}">
+              <button type="button" data-minus aria-label="Diminuir">−</button>
+              <output data-quantity>0</output>
+              <button type="button" data-plus aria-label="Aumentar">+</button>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><span>🍪</span><h3>O cardápio está sendo preparado</h3><p>Cadastre os produtos no painel para começar a receber pedidos.</p></div>
+    {% endif %}
+  </section>
+</main>
+
+<dialog class="cart-dialog" data-cart-dialog>
+  <form method="dialog"><button class="dialog-close" aria-label="Fechar">×</button></form>
+  <div class="dialog-header"><span class="eyebrow">Seu pedido</span><h2>Uma sacola muito gostosa</h2></div>
+  <div data-cart-items class="cart-items"></div>
+  <div class="cart-total"><span>Total dos produtos</span><strong data-cart-total>R$ 0,00</strong></div>
+
+  <form action="{% url 'finalizar_pedido' %}" method="post" class="checkout-form" data-checkout-form>
+    {% csrf_token %}
+    {{ form.items_json }}
+    {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors }}</div>{% endif %}
+    {% if form.items_json.errors %}<div class="form-error">{{ form.items_json.errors }}</div>{% endif %}
+    <div class="form-grid">
+      <label>Seu nome{{ form.name }}{{ form.name.errors }}</label>
+      <label>WhatsApp{{ form.phone }}{{ form.phone.errors }}</label>
+      <label>E-mail (opcional){{ form.email }}{{ form.email.errors }}</label>
+      <div><strong>Recebimento</strong><p>Retirada no local</p></div>
+      <label>Data da retirada{{ form.requested_for }}{{ form.requested_for.errors }}</label>
+      <label>Forma de pagamento{{ form.payment_method }}{{ form.payment_method.errors }}</label>
+      <label class="full">Observações{{ form.notes }}{{ form.notes.errors }}</label>
+    </div>
+    {% if available_dates %}
+      <button class="button primary full-button" type="submit">Enviar meu pedido</button>
+    {% else %}
+      <div class="no-dates-warning">No momento não há datas disponíveis para retirada. Novos pedidos serão liberados quando a confeitaria cadastrar uma data.</div>
+      <button class="button primary full-button" type="submit" disabled>Aguardando novas datas</button>
+    {% endif %}
+    <small>Pedidos somente para retirada, com pagamento por Pix ou cartão. Após enviar, confirme o horário pelo WhatsApp.</small>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/catalogo.js' %}" defer></script>{% endblock %}

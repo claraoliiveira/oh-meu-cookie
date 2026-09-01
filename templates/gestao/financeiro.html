@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Financeiro | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading"><div><span class="eyebrow">Fluxo de caixa</span><h1>Financeiro</h1></div></div>
+  <section class="kpi-grid three"><article class="kpi green"><span>Entradas do mês</span><strong>R$ {{ income|floatformat:2 }}</strong></article><article class="kpi pink"><span>Saídas do mês</span><strong>R$ {{ expense|floatformat:2 }}</strong></article><article class="kpi lilac"><span>Saldo do mês</span><strong>R$ {{ balance|floatformat:2 }}</strong></article></section>
+  <div class="two-columns">
+    <section class="panel"><h2>Novo lançamento</h2><form method="post" class="stack-form">{% csrf_token %}<input type="hidden" name="action" value="cash">{{ cash_form.as_p }}<button class="button primary" type="submit">Adicionar ao caixa</button></form></section>
+    <section class="panel"><div class="panel-heading"><h2>Nova conta a receber</h2><span>Cadastre uma venda pendente</span></div><form method="post" class="stack-form">{% csrf_token %}<input type="hidden" name="action" value="receivable">{{ receivable_form.as_p }}<button class="button primary" type="submit">Cadastrar conta</button></form></section>
+  </div>
+  <section class="panel spaced-panel"><div class="panel-heading"><h2>Contas a receber</h2><span>Marque quando receber</span></div><div class="compact-list">
+      {% for item in receivables %}<div><p><strong>{{ item.customer.name }}</strong><small>{{ item.description }}{% if item.due_date %} · {{ item.due_date|date:'d/m/Y' }}{% endif %}</small></p><strong>R$ {{ item.amount|floatformat:2 }}</strong>{% if item.status == 'PENDENTE' %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="pay"><input type="hidden" name="receivable_id" value="{{ item.pk }}"><button type="submit">Marcar pago</button></form>{% else %}<span class="status good">Pago</span>{% endif %}</div>{% empty %}<p>Nenhuma conta cadastrada.</p>{% endfor %}
+    </div></section>
+  <section class="panel spaced-panel"><h2>Lançamentos do mês</h2><div class="responsive-table"><table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr></thead><tbody>{% for entry in entries %}<tr><td>{{ entry.date|date:'d/m/Y' }}</td><td>{{ entry.description }}</td><td><span class="status {% if entry.kind == 'ENTRADA' %}good{% else %}danger{% endif %}">{{ entry.get_kind_display }}</span></td><td><strong>R$ {{ entry.amount|floatformat:2 }}</strong></td></tr>{% empty %}<tr><td colspan="4">Nenhum lançamento neste mês.</td></tr>{% endfor %}</tbody></table></div></section>
+</main>
+{% endblock %}
