@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from .forms import AvailablePickupDateForm, CashEntryForm, CheckoutForm, IngredientForm, ProductForm, ProductionForm, ReceivableForm, StockEntryForm
 from .models import AvailablePickupDate, CashEntry, Customer, Ingredient, Order, OrderItem, Product, Receivable, Recipe
-from .services import marcar_recebivel_pago, registrar_entrada_estoque, registrar_producao
+from .services import atualizar_pedido, marcar_recebivel_pago, registrar_entrada_estoque, registrar_producao
 
 
 def catalogo(request):
@@ -33,6 +33,28 @@ def finalizar_pedido(request):
         return render(request, "loja/catalogo.html", {"products": products, "form": form, "available_dates": available_dates}, status=400)
 
     data = form.cleaned_data
+    requested_items = data["items_json"]
+    selected_products = {
+        product.pk: product
+        for product in Product.objects.filter(
+            pk__in=[item["product_id"] for item in requested_items],
+            active=True,
+        )
+    }
+    availability_errors = []
+    for item in requested_items:
+        product = selected_products.get(item["product_id"])
+        if not product:
+            availability_errors.append("Um dos produtos não está mais disponível.")
+        elif item["quantity"] > product.available_quantity:
+            availability_errors.append(
+                f"{product.name}: escolha até {product.available_quantity} unidade(s)."
+            )
+    if availability_errors:
+        form.add_error("items_json", " ".join(availability_errors))
+        available_dates = AvailablePickupDate.objects.filter(active=True, pickup_date__gte=timezone.localdate()).order_by("pickup_date")
+        return render(request, "loja/catalogo.html", {"products": products, "form": form, "available_dates": available_dates}, status=400)
+
     customer = Customer.objects.filter(phone=data["phone"]).first()
     if customer:
         customer.name = data["name"]
@@ -50,8 +72,7 @@ def finalizar_pedido(request):
         delivery_fee=Decimal("0"),
         notes=data["notes"],
     )
-    selected_products = {p.pk: p for p in Product.objects.filter(pk__in=[i["product_id"] for i in data["items_json"]], active=True)}
-    for item in data["items_json"]:
+    for item in requested_items:
         product = selected_products.get(item["product_id"])
         if product:
             OrderItem.objects.create(order=order, product=product, quantity=item["quantity"], unit_price=product.sale_price)
@@ -107,16 +128,35 @@ def gestao_pedidos(request):
     if request.method == "POST":
         order = get_object_or_404(Order, pk=request.POST.get("order_id"))
         status = request.POST.get("status")
-        if status in Order.Status.values:
-            order.status = status
-            order.save(update_fields=["status", "updated_at"])
-            messages.success(request, f"Pedido #{order.pk} atualizado.")
+        payment_status = request.POST.get("payment_status")
+        if status in Order.Status.values and payment_status in Order.PaymentStatus.values:
+            had_stock_deducted = bool(order.stock_deducted_at)
+            try:
+                updated_order = atualizar_pedido(order, status, payment_status)
+            except ValidationError as exc:
+                messages.error(request, exc.messages[0])
+            else:
+                if updated_order.stock_deducted_at and status == Order.Status.APPROVED:
+                    messages.success(request, f"Pedido #{order.pk} aprovado e quantidade pronta atualizada.")
+                elif status == Order.Status.CANCELLED and had_stock_deducted:
+                    messages.success(request, f"Pedido #{order.pk} cancelado. As unidades reservadas voltaram ao estoque.")
+                else:
+                    messages.success(request, f"Pedido #{order.pk} atualizado.")
         return redirect("gestao_pedidos")
     query = request.GET.get("q", "").strip()
     orders = Order.objects.select_related("customer").prefetch_related("items__product")
     if query:
         orders = orders.filter(Q(customer__name__icontains=query) | Q(customer__phone__icontains=query))
-    return render(request, "gestao/pedidos.html", {"orders": orders[:100], "statuses": Order.Status.choices, "query": query})
+    return render(
+        request,
+        "gestao/pedidos.html",
+        {
+            "orders": orders[:100],
+            "statuses": Order.Status.choices,
+            "payment_statuses": Order.PaymentStatus.choices,
+            "query": query,
+        },
+    )
 
 
 @login_required

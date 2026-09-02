@@ -5,18 +5,30 @@
   <div class="page-heading"><div><span class="eyebrow">Vendas</span><h1>Pedidos</h1></div>
     <form method="get" class="search-form"><input name="q" value="{{ query }}" placeholder="Buscar cliente ou telefone"><button class="button" type="submit">Buscar</button></form>
   </div>
+  <div class="order-rule-banner">
+    <span aria-hidden="true">✓</span>
+    <div><strong>Aprovação com baixa automática</strong><small>Marque o pagamento como <b>Pago</b> e o status como <b>Aprovado</b>. A quantidade pronta será reduzida uma única vez.</small></div>
+  </div>
   <section class="panel">
-    <div class="responsive-table"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Data da retirada</th><th>Pagamento</th><th>Total</th><th>Status</th></tr></thead><tbody>
+    <div class="responsive-table"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Data da retirada</th><th>Total</th><th>Aprovação</th></tr></thead><tbody>
       {% for order in orders %}
         <tr>
           <td><strong>#{{ order.pk }}</strong><small>{{ order.created_at|date:'d/m H:i' }}</small></td>
           <td>{{ order.customer.name }}<small>{{ order.customer.phone }}</small></td>
           <td>{% for item in order.items.all %}<small>{{ item.quantity }}x {{ item.product.name }}</small>{% endfor %}</td>
-          <td>{% if order.requested_for %}<strong>{{ order.requested_for|date:'d/m/Y' }}</strong>{% else %}Não informada{% endif %}<small>Retirada no local</small></td><td>{{ order.get_payment_method_display }}<small>{{ order.get_payment_status_display }}</small></td>
+          <td>{% if order.requested_for %}<strong>{{ order.requested_for|date:'d/m/Y' }}</strong>{% else %}Não informada{% endif %}<small>Retirada no local</small></td>
           <td><strong>R$ {{ order.total|floatformat:2 }}</strong></td>
-          <td><form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="order_id" value="{{ order.pk }}"><select name="status">{% for value,label in statuses %}<option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button type="submit">Salvar</button></form></td>
+          <td>
+            <form method="post" class="order-update-form">
+              {% csrf_token %}<input type="hidden" name="order_id" value="{{ order.pk }}">
+              <label><span>Pagamento · {{ order.get_payment_method_display }}</span><select name="payment_status">{% for value,label in payment_statuses %}<option value="{{ value }}" {% if order.payment_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+              <label><span>Status do pedido</span><select name="status">{% for value,label in statuses %}<option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+              <button class="button primary small" type="submit">Atualizar pedido</button>
+              {% if order.stock_deducted_at %}<small class="stock-deducted">✓ Quantidade pronta já descontada</small>{% endif %}
+            </form>
+          </td>
         </tr>
-      {% empty %}<tr><td colspan="7">Nenhum pedido encontrado.</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="6">Nenhum pedido encontrado.</td></tr>{% endfor %}
     </tbody></table></div>
   </section>
 </main>

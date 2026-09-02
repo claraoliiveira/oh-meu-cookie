@@ -166,7 +166,7 @@ class AvailablePickupDate(models.Model):
 class Order(models.Model):
     class Status(models.TextChoices):
         NEW = "NOVO", "Novo"
-        CONFIRMED = "CONFIRMADO", "Confirmado"
+        APPROVED = "CONFIRMADO", "Aprovado"
         PREPARING = "EM_PREPARO", "Em preparo"
         READY = "PRONTO", "Pronto"
         COMPLETED = "CONCLUIDO", "Concluído"
@@ -194,6 +194,7 @@ class Order(models.Model):
     delivery_fee = models.DecimalField("taxa de entrega", max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     notes = models.TextField("observações", blank=True)
+    stock_deducted_at = models.DateTimeField("estoque baixado em", null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 

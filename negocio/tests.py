@@ -8,7 +8,7 @@ from django.test import Client, TestCase
 from django.utils import timezone
 
 from .models import AvailablePickupDate, CashEntry, Customer, Ingredient, Order, OrderItem, Product, Receivable, Recipe, RecipeItem
-from .services import marcar_recebivel_pago, registrar_producao
+from .services import atualizar_pedido, marcar_recebivel_pago, registrar_producao
 
 
 class BusinessRulesTests(TestCase):
@@ -18,7 +18,7 @@ class BusinessRulesTests(TestCase):
         )
         self.recipe = Recipe.objects.create(name="Cookie teste", yield_quantity=10, extra_cost=Decimal("0"), overhead_percent=0)
         RecipeItem.objects.create(recipe=self.recipe, ingredient=self.flour, quantity=200)
-        self.product = Product.objects.create(name="Cookie teste", recipe=self.recipe, sale_price=Decimal("3.00"))
+        self.product = Product.objects.create(name="Cookie teste", recipe=self.recipe, sale_price=Decimal("3.00"), available_quantity=10)
         self.customer = Customer.objects.create(name="Clara", phone="33999999999")
 
     def test_recipe_and_unit_cost(self):
@@ -49,13 +49,47 @@ class BusinessRulesTests(TestCase):
         self.assertEqual(receivable.status, Receivable.Status.PAID)
         self.assertTrue(CashEntry.objects.filter(receivable=receivable, kind=CashEntry.Kind.INCOME, amount=20).exists())
 
+    def test_paid_approved_order_deducts_ready_quantity_only_once(self):
+        order = Order.objects.create(customer=self.customer, payment_method=Order.PaymentMethod.PIX)
+        OrderItem.objects.create(order=order, product=self.product, quantity=3, unit_price=self.product.sale_price)
+
+        atualizar_pedido(order, Order.Status.APPROVED, Order.PaymentStatus.PAID)
+        atualizar_pedido(order, Order.Status.APPROVED, Order.PaymentStatus.PAID)
+
+        self.product.refresh_from_db()
+        order.refresh_from_db()
+        self.assertEqual(self.product.available_quantity, 7)
+        self.assertIsNotNone(order.stock_deducted_at)
+
+    def test_unpaid_order_cannot_be_approved(self):
+        order = Order.objects.create(customer=self.customer, payment_method=Order.PaymentMethod.PIX)
+        OrderItem.objects.create(order=order, product=self.product, quantity=2, unit_price=self.product.sale_price)
+
+        with self.assertRaises(ValidationError):
+            atualizar_pedido(order, Order.Status.APPROVED, Order.PaymentStatus.PENDING)
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.available_quantity, 10)
+
+    def test_cancelling_approved_order_restores_ready_quantity(self):
+        order = Order.objects.create(customer=self.customer, payment_method=Order.PaymentMethod.PIX)
+        OrderItem.objects.create(order=order, product=self.product, quantity=4, unit_price=self.product.sale_price)
+        atualizar_pedido(order, Order.Status.APPROVED, Order.PaymentStatus.PAID)
+
+        atualizar_pedido(order, Order.Status.CANCELLED, Order.PaymentStatus.PAID)
+
+        self.product.refresh_from_db()
+        order.refresh_from_db()
+        self.assertEqual(self.product.available_quantity, 10)
+        self.assertIsNone(order.stock_deducted_at)
+
 
 class PublicFlowTests(TestCase):
     def setUp(self):
         ingredient = Ingredient.objects.create(name="Farinha", package_quantity=1000, package_price=5)
         recipe = Recipe.objects.create(name="Cookie", yield_quantity=10)
         RecipeItem.objects.create(recipe=recipe, ingredient=ingredient, quantity=100)
-        self.product = Product.objects.create(name="Cookie", recipe=recipe, sale_price=Decimal("3.00"))
+        self.product = Product.objects.create(name="Cookie", recipe=recipe, sale_price=Decimal("3.00"), available_quantity=20)
         self.pickup_date = AvailablePickupDate.objects.create(pickup_date=timezone.localdate() + timedelta(days=2))
         self.client = Client()
 
@@ -100,6 +134,22 @@ class PublicFlowTests(TestCase):
                 "payment_method": "DINHEIRO",
                 "requested_for": self.pickup_date.pickup_date.isoformat(),
                 "items_json": json.dumps([{"product_id": self.product.pk, "quantity": 1}]),
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_checkout_rejects_quantity_above_ready_stock(self):
+        self.product.available_quantity = 1
+        self.product.save(update_fields=["available_quantity"])
+        response = self.client.post(
+            "/pedido/finalizar/",
+            {
+                "name": "Clara",
+                "phone": "33999999999",
+                "payment_method": "PIX",
+                "requested_for": self.pickup_date.pickup_date.isoformat(),
+                "items_json": json.dumps([{"product_id": self.product.pk, "quantity": 2}]),
             },
         )
         self.assertEqual(response.status_code, 400)
@@ -183,8 +233,8 @@ class PublicFlowTests(TestCase):
                 "weight_grams": 80,
                 "sale_price": "8.50",
                 "available_quantity": 12,
-                "active": "on",
-                "featured": "on",
+                "active": "True",
+                "featured": "True",
             },
         )
         self.assertRedirects(response, "/gestao/produtos/")
@@ -201,7 +251,8 @@ class PublicFlowTests(TestCase):
                 "weight_grams": 90,
                 "sale_price": "9.90",
                 "available_quantity": 8,
-                "active": "on",
+                "active": "True",
+                "featured": "False",
             },
         )
         self.assertRedirects(response, "/gestao/produtos/")

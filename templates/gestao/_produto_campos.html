@@ -55,16 +55,16 @@
     <span>03</span>
     <div><strong>Exibição na loja</strong><small>Escolha como esse produto aparece para os clientes.</small></div>
   </div>
-  <div class="switch-grid">
-    <label class="switch-card">
+  <div class="visibility-select-grid">
+    <label class="visibility-select-card">
+      <span class="visibility-icon" aria-hidden="true">👁</span>
+      <span class="visibility-copy"><strong>Exibição no cardápio</strong><small>Escolha se o cliente pode ver o produto.</small></span>
       {{ form.active }}
-      <span class="switch-track" aria-hidden="true"><span></span></span>
-      <span class="switch-copy"><strong>Disponível na loja</strong><small>Exibe o produto no cardápio público.</small></span>
     </label>
-    <label class="switch-card">
+    <label class="visibility-select-card">
+      <span class="visibility-icon" aria-hidden="true">♥</span>
+      <span class="visibility-copy"><strong>Destaque do produto</strong><small>Escolha se ele recebe a etiqueta “Mais desejado”.</small></span>
       {{ form.featured }}
-      <span class="switch-track" aria-hidden="true"><span></span></span>
-      <span class="switch-copy"><strong>Produto em destaque</strong><small>Adiciona a etiqueta “Mais desejado”.</small></span>
     </label>
   </div>
   {{ form.active.errors }}{{ form.featured.errors }}

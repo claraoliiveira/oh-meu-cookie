@@ -224,18 +224,13 @@ details li { display: flex; justify-content: space-between; gap: 15px; color: va
 .input-shell input:focus { box-shadow: none; }
 .input-shell b { padding: 0 12px; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .input-shell.money b { padding-right: 0; color: var(--cocoa); }
-.switch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.switch-card { display: grid; grid-template-columns: auto 1fr; min-height: 92px; padding: 17px; align-items: center; gap: 0 14px; border: 1px solid var(--line); border-radius: 18px 18px 18px 7px; background: white; cursor: pointer; transition: .2s ease; }
-.switch-card:hover { border-color: #d99eaa; transform: translateY(-1px); box-shadow: 0 9px 20px rgba(91,51,42,.08); }
-.switch-card input { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; pointer-events: none; }
-.switch-track { position: relative; width: 44px; height: 25px; border-radius: 999px; background: #ddcbc5; transition: .2s ease; }
-.switch-track span { position: absolute; top: 4px; left: 4px; width: 17px; height: 17px; border-radius: 50%; background: white; box-shadow: 0 2px 7px rgba(53,23,15,.2); transition: .2s ease; }
-.switch-card input:checked + .switch-track { background: var(--pink); }
-.switch-card input:checked + .switch-track span { transform: translateX(19px); }
-.switch-card input:focus-visible + .switch-track { outline: 3px solid rgba(244,73,131,.2); outline-offset: 2px; }
-.switch-copy strong, .switch-copy small { display: block; }
-.switch-copy strong { color: var(--cocoa); font-size: 13px; }
-.switch-copy small { margin-top: 5px; color: var(--muted); font-size: 10px; font-weight: 500; line-height: 1.4; }
+.visibility-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.visibility-select-card { display: grid; grid-template-columns: auto 1fr; min-height: 142px; padding: 17px; align-content: start; align-items: center; gap: 0 13px; border: 1px solid var(--line); border-radius: 18px 18px 18px 7px; background: white; }
+.visibility-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; color: var(--pink-dark); background: var(--pink-soft); font-size: 18px; }
+.visibility-copy strong, .visibility-copy small { display: block; }
+.visibility-copy strong { color: var(--cocoa); font-size: 13px; }
+.visibility-copy small { margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 500; line-height: 1.4; }
+.visibility-select-card select { grid-column: 1 / -1; margin-top: 14px; min-height: 42px; color: var(--cocoa); font-size: 12px; font-weight: 750; background-color: #fffaf7; }
 .product-form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 20px; padding-top: 24px; border-top: 1px solid var(--line); }
 .product-form-actions p { max-width: 540px; margin: 0 auto 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
 .product-form-alert { margin-bottom: 22px; }
@@ -312,7 +307,7 @@ details li { display: flex; justify-content: space-between; gap: 15px; color: va
   .product-create-panel { padding: 22px 16px; }
   .product-create-header { align-items: flex-start; }
   .product-create-icon { width: 52px; height: 52px; border-radius: 17px 17px 17px 6px; font-size: 27px; }
-  .product-form-grid, .product-form-grid.three, .switch-grid { grid-template-columns: 1fr; }
+  .product-form-grid, .product-form-grid.three, .visibility-select-grid { grid-template-columns: 1fr; }
   .product-form-grid .full { grid-column: auto; }
   .product-form-actions { align-items: stretch; flex-direction: column; }
   .product-form-actions p { margin: 0; }

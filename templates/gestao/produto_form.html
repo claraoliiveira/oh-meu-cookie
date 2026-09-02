@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
-{% block title %}Editar produto | Gestão{% endblock %}
+{% block title %}Editar {{ product.name }} | Gestão{% endblock %}
 {% block content %}
-<main class="management-shell">
-  <div class="page-heading">
-    <div><span class="eyebrow">Cardápio da loja</span><h1>Editar produto</h1><p class="muted">{{ product.name }}</p></div>
-    <a class="button" href="{% url 'gestao_produtos' %}">Voltar para produtos</a>
+<main class="management-shell product-page">
+  <div class="page-heading product-page-heading">
+    <div><span class="eyebrow">Editar item do cardápio</span><h1>{{ product.name }}</h1><p>Atualize os dados e a quantidade pronta deste produto.</p></div>
+    <a class="button" href="{% url 'gestao_produtos' %}">← Voltar para produtos</a>
   </div>
-  <section class="panel product-edit-panel">
-    <form method="post" class="stack-form">
+  <section class="panel product-create-panel product-edit-panel">
+    <form method="post" class="product-form">
       {% csrf_token %}
-      {{ form.as_p }}
-      <div class="page-actions">
+      {% include 'gestao/_produto_campos.html' %}
+      <div class="product-form-actions">
         <a class="button" href="{% url 'gestao_produtos' %}">Cancelar</a>
         <button class="button primary" type="submit">Salvar alterações</button>
       </div>

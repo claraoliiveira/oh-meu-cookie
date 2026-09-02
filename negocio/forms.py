@@ -81,6 +81,19 @@ class ProductionForm(forms.Form):
 
 
 class ProductForm(forms.ModelForm):
+    active = forms.TypedChoiceField(
+        label="Exibição na loja",
+        choices=((True, "Disponível na loja"), (False, "Oculto da loja")),
+        coerce=lambda value: value in (True, "True", "true", "1"),
+        widget=forms.Select,
+    )
+    featured = forms.TypedChoiceField(
+        label="Destaque do produto",
+        choices=((False, "Sem destaque"), (True, "Mostrar como destaque")),
+        coerce=lambda value: value in (True, "True", "true", "1"),
+        widget=forms.Select,
+    )
+
     class Meta:
         model = Product
         fields = [
@@ -94,15 +107,17 @@ class ProductForm(forms.ModelForm):
             "featured",
         ]
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 3}),
-            "weight_grams": forms.NumberInput(attrs={"min": 1}),
-            "sale_price": forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
-            "available_quantity": forms.NumberInput(attrs={"min": 0}),
+            "description": forms.Textarea(attrs={"rows": 4, "placeholder": "Conte o que torna esse cookie irresistível..."}),
+            "weight_grams": forms.NumberInput(attrs={"min": 1, "placeholder": "Ex.: 100"}),
+            "sale_price": forms.NumberInput(attrs={"min": "0.01", "step": "0.01", "placeholder": "0,00"}),
+            "available_quantity": forms.NumberInput(attrs={"min": 0, "placeholder": "0"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["recipe"].queryset = Recipe.objects.filter(active=True).order_by("name")
+        self.fields["recipe"].empty_label = "Selecione a receita usada"
+        self.fields["name"].widget.attrs.update({"placeholder": "Ex.: Cookie de Nutella", "autocomplete": "off"})
 
 
 class CashEntryForm(forms.ModelForm):
