@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Produtos | Gestão{% endblock %}
+{% block content %}
+<main class="management-shell">
+  <div class="page-heading">
+    <div><span class="eyebrow">Cardápio da loja</span><h1>Produtos</h1></div>
+    <a class="button" href="{% url 'catalogo' %}" target="_blank" rel="noopener">Ver na loja</a>
+  </div>
+
+  <div class="two-columns product-management-grid">
+    <section class="panel">
+      <div class="panel-heading"><h2>Novo produto</h2><span>Sem usar o admin</span></div>
+      {% if not form.fields.recipe.queryset %}
+        <div class="form-error">Cadastre uma receita ativa antes de criar o produto.</div>
+      {% endif %}
+      <form method="post" class="stack-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        {{ form.as_p }}
+        <button class="button primary" type="submit" {% if not form.fields.recipe.queryset %}disabled{% endif %}>Cadastrar produto</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading"><h2>Como funciona</h2><span>Cardápio sob controle</span></div>
+      <div class="management-help">
+        <p><strong>Disponível na loja:</strong> mostra ou esconde o produto no cardápio público.</p>
+        <p><strong>Destaque:</strong> exibe a etiqueta “Mais desejado”.</p>
+        <p><strong>Quantidade pronta:</strong> registra quantas unidades estão disponíveis.</p>
+        <p><strong>Editar:</strong> permite alterar nome, receita, descrição, peso, preço e quantidade.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel spaced-panel">
+    <div class="panel-heading"><h2>Produtos cadastrados</h2><span>{{ products|length }} produtos</span></div>
+    <div class="responsive-table">
+      <table>
+        <thead><tr><th>Produto</th><th>Receita</th><th>Preço</th><th>Quantidade</th><th>Exibição</th><th>Ações</th></tr></thead>
+        <tbody>
+          {% for product in products %}
+            <tr>
+              <td><strong>{{ product.name }}</strong><small>{% if product.weight_grams %}{{ product.weight_grams }}g{% else %}Peso não informado{% endif %}{% if product.featured %} · Destaque{% endif %}</small></td>
+              <td>{{ product.recipe.name }}</td>
+              <td><strong>R$ {{ product.sale_price|floatformat:2 }}</strong><small>Custo: R$ {{ product.unit_cost|floatformat:2 }}</small></td>
+              <td>{{ product.available_quantity }} un.</td>
+              <td>{% if product.active %}<span class="status good">Na loja</span>{% else %}<span class="status danger">Oculto</span>{% endif %}</td>
+              <td>
+                <div class="product-actions">
+                  <a class="button small" href="{% url 'gestao_produto_editar' product.pk %}">Editar</a>
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle">
+                    <input type="hidden" name="product_id" value="{{ product.pk }}">
+                    <button class="button small {% if product.active %}danger{% endif %}" type="submit">{% if product.active %}Ocultar{% else %}Ativar{% endif %}</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6">Nenhum produto cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

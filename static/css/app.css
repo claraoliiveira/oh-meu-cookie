@@ -192,6 +192,16 @@ details li { display: flex; justify-content: space-between; gap: 15px; color: va
 .date-row form { margin: 0; }
 .date-delete { min-height: 36px; padding: 7px 12px; border: 1px solid #e2b2b8; border-radius: 999px; color: #9d2b49; background: white; font-size: 11px; font-weight: 850; }
 .date-delete:hover { background: var(--pink-soft); }
+.product-management-grid { align-items: start; }
+.management-help { display: grid; gap: 12px; }
+.management-help p { margin: 0; padding: 13px 15px; border-radius: 14px; color: var(--muted); background: var(--cream); line-height: 1.5; }
+.management-help strong { color: var(--cocoa); }
+.product-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.product-actions form { margin: 0; }
+.button.small { min-height: 34px; padding: 7px 12px; font-size: 11px; }
+.button.danger { border-color: #e2b2b8; color: #9d2b49; background: white; }
+.button.danger:hover { color: #84213e; background: var(--pink-soft); }
+.product-edit-panel { width: min(100%, 720px); }
 
 .empty-state { padding: 55px 20px; border: 1px dashed #d7bab1; border-radius: 25px; color: var(--muted); text-align: center; }
 .empty-state > span { font-size: 50px; }

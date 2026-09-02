@@ -11,7 +11,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import AvailablePickupDateForm, CashEntryForm, CheckoutForm, IngredientForm, ProductionForm, ReceivableForm, StockEntryForm
+from .forms import AvailablePickupDateForm, CashEntryForm, CheckoutForm, IngredientForm, ProductForm, ProductionForm, ReceivableForm, StockEntryForm
 from .models import AvailablePickupDate, CashEntry, Customer, Ingredient, Order, OrderItem, Product, Receivable, Recipe
 from .services import marcar_recebivel_pago, registrar_entrada_estoque, registrar_producao
 
@@ -117,6 +117,38 @@ def gestao_pedidos(request):
     if query:
         orders = orders.filter(Q(customer__name__icontains=query) | Q(customer__phone__icontains=query))
     return render(request, "gestao/pedidos.html", {"orders": orders[:100], "statuses": Order.Status.choices, "query": query})
+
+
+@login_required
+def gestao_produtos(request):
+    form = ProductForm(request.POST or None)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "add" and form.is_valid():
+            product = form.save()
+            messages.success(request, f"Produto {product.name} cadastrado.")
+            return redirect("gestao_produtos")
+        if action == "toggle":
+            product = get_object_or_404(Product, pk=request.POST.get("product_id"))
+            product.active = not product.active
+            product.save(update_fields=["active"])
+            state = "ativado na loja" if product.active else "retirado da loja"
+            messages.success(request, f"Produto {product.name} {state}.")
+            return redirect("gestao_produtos")
+
+    products = Product.objects.select_related("recipe").order_by("-active", "-featured", "name")
+    return render(request, "gestao/produtos.html", {"form": form, "products": products})
+
+
+@login_required
+def gestao_produto_editar(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    form = ProductForm(request.POST or None, instance=product)
+    if request.method == "POST" and form.is_valid():
+        product = form.save()
+        messages.success(request, f"Produto {product.name} atualizado.")
+        return redirect("gestao_produtos")
+    return render(request, "gestao/produto_form.html", {"form": form, "product": product})
 
 
 @login_required

@@ -169,3 +169,68 @@ class PublicFlowTests(TestCase):
         receivable.refresh_from_db()
         self.assertEqual(receivable.status, Receivable.Status.PAID)
         self.assertTrue(CashEntry.objects.filter(receivable=receivable, amount=Decimal("45.90")).exists())
+
+    def test_management_can_create_edit_and_hide_product(self):
+        get_user_model().objects.create_user("clara", password="senha-forte")
+        self.client.login(username="clara", password="senha-forte")
+        response = self.client.post(
+            "/gestao/produtos/",
+            {
+                "action": "add",
+                "name": "Cookie novo",
+                "description": "Cookie cadastrado pela gestão.",
+                "recipe": self.product.recipe_id,
+                "weight_grams": 80,
+                "sale_price": "8.50",
+                "available_quantity": 12,
+                "active": "on",
+                "featured": "on",
+            },
+        )
+        self.assertRedirects(response, "/gestao/produtos/")
+        product = Product.objects.get(name="Cookie novo")
+        self.assertEqual(product.sale_price, Decimal("8.50"))
+        self.assertTrue(product.active)
+
+        response = self.client.post(
+            f"/gestao/produtos/{product.pk}/editar/",
+            {
+                "name": "Cookie novo editado",
+                "description": "Descrição atualizada.",
+                "recipe": self.product.recipe_id,
+                "weight_grams": 90,
+                "sale_price": "9.90",
+                "available_quantity": 8,
+                "active": "on",
+            },
+        )
+        self.assertRedirects(response, "/gestao/produtos/")
+        product.refresh_from_db()
+        self.assertEqual(product.name, "Cookie novo editado")
+        self.assertEqual(product.sale_price, Decimal("9.90"))
+
+        response = self.client.post(
+            "/gestao/produtos/",
+            {"action": "toggle", "product_id": product.pk},
+        )
+        self.assertRedirects(response, "/gestao/produtos/")
+        product.refresh_from_db()
+        self.assertFalse(product.active)
+        self.assertNotContains(self.client.get("/"), "Cookie novo editado")
+
+    def test_product_management_requires_login(self):
+        response = self.client.get("/gestao/produtos/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/entrar/", response.url)
+
+        get_user_model().objects.create_user(
+            username="gestora-produtos",
+            password="senha-segura-123",
+        )
+        self.client.login(
+            username="gestora-produtos",
+            password="senha-segura-123",
+        )
+        response = self.client.get("/gestao/produtos/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Novo produto")

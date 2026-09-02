@@ -5,7 +5,7 @@ from django import forms
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
-from .models import AvailablePickupDate, CashEntry, Ingredient, Order, Recipe
+from .models import AvailablePickupDate, CashEntry, Ingredient, Order, Product, Recipe
 
 
 class CheckoutForm(forms.Form):
@@ -78,6 +78,31 @@ class ProductionForm(forms.Form):
     recipe = forms.ModelChoiceField(label="Receita", queryset=Recipe.objects.filter(active=True))
     batches = forms.DecimalField(label="Quantas receitas?", min_value=0.01, decimal_places=2, initial=1)
     notes = forms.CharField(label="Observações", required=False, max_length=255)
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = [
+            "name",
+            "description",
+            "recipe",
+            "weight_grams",
+            "sale_price",
+            "available_quantity",
+            "active",
+            "featured",
+        ]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
+            "weight_grams": forms.NumberInput(attrs={"min": 1}),
+            "sale_price": forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
+            "available_quantity": forms.NumberInput(attrs={"min": 0}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["recipe"].queryset = Recipe.objects.filter(active=True).order_by("name")
 
 
 class CashEntryForm(forms.ModelForm):

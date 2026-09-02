@@ -12,6 +12,7 @@ Aplicação Django para receber pedidos e controlar produtos, clientes, receitas
 - Agenda de datas de retirada controlada pelo painel: o cliente só finaliza em uma data liberada.
 - Painel protegido por login.
 - Produtos e preços ligados às receitas.
+- Cadastro, edição e ativação de produtos diretamente pelo painel de gestão.
 - Custo total, custo unitário, lucro unitário e percentual de margem calculados automaticamente.
 - Estoque de insumos com alerta de mínimo e histórico de movimentações.
 - Produção que confere e desconta os ingredientes do estoque.
