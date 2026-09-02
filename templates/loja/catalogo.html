@@ -22,7 +22,7 @@
     {% if products %}
       <div class="product-grid">
         {% for product in products %}
-          <article class="product-card" data-product data-id="{{ product.pk }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}">
+          <article class="product-card {% if product.available_quantity == 0 %}sold-out{% endif %}" data-product data-id="{{ product.pk }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}" data-max="{{ product.available_quantity }}">
             <div class="cookie-spot" aria-hidden="true"><span>🍪</span></div>
             {% if product.featured %}<span class="pill">Mais desejado</span>{% endif %}
             <h3>{{ product.name }}</h3>
@@ -31,10 +31,11 @@
               {% if product.weight_grams %}<span>{{ product.weight_grams }}g</span>{% endif %}
               <strong>R$ {{ product.sale_price|floatformat:2 }}</strong>
             </div>
+            {% if product.available_quantity > 0 %}<small class="store-stock">{% if product.available_quantity == 1 %}1 unidade disponível{% else %}{{ product.available_quantity }} unidades disponíveis{% endif %}</small>{% else %}<small class="store-stock sold-out-label">Esgotado no momento</small>{% endif %}
             <div class="quantity-control" aria-label="Quantidade de {{ product.name }}">
               <button type="button" data-minus aria-label="Diminuir">−</button>
               <output data-quantity>0</output>
-              <button type="button" data-plus aria-label="Aumentar">+</button>
+              <button type="button" data-plus aria-label="Aumentar" {% if product.available_quantity == 0 %}disabled{% endif %}>+</button>
             </div>
           </article>
         {% endfor %}

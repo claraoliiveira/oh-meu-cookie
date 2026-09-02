@@ -29,7 +29,8 @@ function renderCart() {
 
 cards.forEach((card) => {
   const output = card.querySelector("[data-quantity]");
-  card.querySelector("[data-plus]").addEventListener("click", () => { output.value = Math.min(Number(output.value) + 1, 100); renderCart(); });
+  const maximum = Number(card.dataset.max || 0);
+  card.querySelector("[data-plus]").addEventListener("click", () => { output.value = Math.min(Number(output.value) + 1, maximum); renderCart(); });
   card.querySelector("[data-minus]").addEventListener("click", () => { output.value = Math.max(Number(output.value) - 1, 0); renderCart(); });
 });
 

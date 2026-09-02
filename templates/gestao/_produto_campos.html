@@ -1,0 +1,71 @@
+{% if form.non_field_errors %}<div class="form-error product-form-alert">{{ form.non_field_errors }}</div>{% endif %}
+
+<div class="product-form-section">
+  <div class="product-form-section-title">
+    <span>01</span>
+    <div><strong>Identidade do produto</strong><small>As informações que o cliente verá no cardápio.</small></div>
+  </div>
+  <div class="product-form-grid">
+    <label class="field full">
+      <span>Nome do produto</span>
+      {{ form.name }}
+      {{ form.name.errors }}
+    </label>
+    <label class="field full">
+      <span>Descrição</span>
+      {{ form.description }}
+      {{ form.description.errors }}
+      <small class="field-hint">Uma frase curta e apetitosa funciona melhor.</small>
+    </label>
+  </div>
+</div>
+
+<div class="product-form-section">
+  <div class="product-form-section-title">
+    <span>02</span>
+    <div><strong>Receita, preço e estoque</strong><small>Use a quantidade pronta para controlar as vendas.</small></div>
+  </div>
+  <div class="product-form-grid three">
+    <label class="field full">
+      <span>Receita vinculada</span>
+      {{ form.recipe }}
+      {{ form.recipe.errors }}
+    </label>
+    <label class="field input-with-unit">
+      <span>Peso</span>
+      <span class="input-shell">{{ form.weight_grams }}<b>g</b></span>
+      {{ form.weight_grams.errors }}
+    </label>
+    <label class="field input-with-unit">
+      <span>Preço de venda</span>
+      <span class="input-shell money"><b>R$</b>{{ form.sale_price }}</span>
+      {{ form.sale_price.errors }}
+    </label>
+    <label class="field input-with-unit stock-field">
+      <span>Quantidade pronta</span>
+      <span class="input-shell">{{ form.available_quantity }}<b>un.</b></span>
+      {{ form.available_quantity.errors }}
+      <small class="field-hint">Será reduzida quando um pedido pago for aprovado.</small>
+    </label>
+  </div>
+</div>
+
+<div class="product-form-section product-visibility-section">
+  <div class="product-form-section-title">
+    <span>03</span>
+    <div><strong>Exibição na loja</strong><small>Escolha como esse produto aparece para os clientes.</small></div>
+  </div>
+  <div class="switch-grid">
+    <label class="switch-card">
+      {{ form.active }}
+      <span class="switch-track" aria-hidden="true"><span></span></span>
+      <span class="switch-copy"><strong>Disponível na loja</strong><small>Exibe o produto no cardápio público.</small></span>
+    </label>
+    <label class="switch-card">
+      {{ form.featured }}
+      <span class="switch-track" aria-hidden="true"><span></span></span>
+      <span class="switch-copy"><strong>Produto em destaque</strong><small>Adiciona a etiqueta “Mais desejado”.</small></span>
+    </label>
+  </div>
+  {{ form.active.errors }}{{ form.featured.errors }}
+</div>
